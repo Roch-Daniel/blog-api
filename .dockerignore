@@ -1,0 +1,29 @@
+node_modules
+npm-debug.log
+dist
+build
+docker-data
+
+# Git e metadados locais
+.git
+
+# Arquivos de ambiente / segredos
+.env
+.env.*
+
+README.md
+
+# IDE / sistema
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Logs e cobertura
+*.log
+coverage
+coverage/lcov-report/
+
+# Arquivos de certificados / chaves
+*.key
+*.pem
