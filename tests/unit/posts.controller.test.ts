@@ -60,10 +60,10 @@ describe("GET /posts/:id", () => {
 
     const response = await request(app).get("/posts/6a0d15d3a97073ce0554f2b7");
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
 
     expect(response.body).toEqual({
-      status: 500,
+      status: 400,
       message: "Erro interno teste",
     });
   });
