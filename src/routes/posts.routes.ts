@@ -10,7 +10,7 @@ import {
 import {
   createPostSchema,
   updatePartialPostSchema,
-} from "../schema/posts.schema";
+} from "../schemas/posts.schema";
 import { validate } from "../middlewares/validate.middleware";
 
 const postsRoutes = Router();
@@ -18,12 +18,12 @@ const postsRoutes = Router();
 postsRoutes.get("/", listPosts);
 postsRoutes.get("/:id", showPost);
 postsRoutes.post("/", validate(createPostSchema), createPostController);
-postsRoutes.delete("/:id", deletePostController);
 postsRoutes.put("/:id", validate(createPostSchema), updatePostController);
 postsRoutes.patch(
   "/:id",
   validate(updatePartialPostSchema),
   updatePartialPostController,
 );
+postsRoutes.delete("/:id", deletePostController);
 
 export default postsRoutes;
