@@ -4,6 +4,7 @@ import {
   deletePost,
   getAllPosts,
   getPostById,
+  searchPosts,
   updatePost,
 } from "../services/posts.services";
 
@@ -14,6 +15,24 @@ const getRouteId = (idParam: string | string[]): string => {
 export const listPosts = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const posts = await getAllPosts();
+
+    return res.status(200).json({
+      data: posts,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const searchPostsByTerm = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const term = String(req.query.q ?? "");
+
+    const posts = await searchPosts(term);
 
     return res.status(200).json({
       data: posts,

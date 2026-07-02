@@ -12,6 +12,7 @@ import {
   findMemoryStatusById,
   findMemoryUserById,
   getMemoryPosts,
+  searchMemoryPosts,
   updateMemoryPost,
 } from "./memory-data.service";
 import { IPostPayload } from "../interfaces/IPosts";
@@ -112,6 +113,7 @@ export const getAllPosts = async () => {
     return activePosts;
   }
 
+
   const activeStatuses = await StatusModel.find({ isActive: true }).select(
     "_id",
   );
@@ -122,6 +124,50 @@ export const getAllPosts = async () => {
   }
 
   return PostModel.find({ status: { $in: activeStatusIds } })
+    .populate(postPopulate)
+    .sort({ createDate: -1 });
+};
+
+export const searchPosts = async (term: string) => {
+  if (!term || term.trim() === "") {
+    return [];
+  }
+
+  if (isMemoryMode()) {
+    return searchMemoryPosts(term);
+  }
+
+  const activeStatuses = await StatusModel.find({
+    isActive: true,
+  }).select("_id");
+
+  const activeStatusIds = activeStatuses.map((status) => status._id);
+
+  return PostModel.find({
+    status: {
+      $in: activeStatusIds,
+    },
+    $or: [
+      {
+        title: {
+          $regex: term,
+          $options: "i",
+        },
+      },
+      {
+        summary: {
+          $regex: term,
+          $options: "i",
+        },
+      },
+      {
+        content: {
+          $regex: term,
+          $options: "i",
+        },
+      },
+    ],
+  })
     .populate(postPopulate)
     .sort({ createDate: -1 });
 };

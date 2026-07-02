@@ -478,3 +478,58 @@ describe("DELETE /posts/:id", () => {
     expect(response.body).toHaveProperty("message");
   });
 });
+
+describe("GET /posts/search", () => {
+  it("deve retornar posts encontrados pelo título", async () => {
+    const response = await request(app)
+      .get("/posts/search")
+      .query({ q: "inicial" });
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          _id: postId,
+          title: "Post inicial",
+        }),
+      ]),
+    );
+  });
+
+  it("deve retornar posts encontrados pelo resumo", async () => {
+    const response = await request(app)
+      .get("/posts/search")
+      .query({ q: "Resumo" });
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.length).toBeGreaterThan(0);
+  });
+
+  it("deve retornar posts encontrados pelo conteúdo", async () => {
+    const response = await request(app)
+      .get("/posts/search")
+      .query({ q: "Conteúdo" });
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.data.length).toBeGreaterThan(0);
+  });
+
+  it("deve retornar lista vazia quando não encontrar resultados", async () => {
+    const response = await request(app)
+      .get("/posts/search")
+      .query({ q: "texto-que-nao-existe-123456" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual([]);
+  });
+
+  it("deve retornar lista vazia quando q não for informado", async () => {
+    const response = await request(app).get("/posts/search");
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual([]);
+  });
+});

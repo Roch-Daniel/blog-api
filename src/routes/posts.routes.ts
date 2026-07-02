@@ -3,6 +3,7 @@ import {
   listPosts,
   patchPostById,
   removePost,
+  searchPostsByTerm,
   showPost,
   storePost,
   updatePostById,
@@ -13,6 +14,8 @@ import { createPostSchema, updatePartialPostSchema } from "../schemas/posts.sche
 const postsRoutes = Router();
 
 postsRoutes.get("/", listPosts);
+postsRoutes.get("/search", searchPostsByTerm);
+
 postsRoutes.post("/", validate(createPostSchema), storePost);
 postsRoutes.get("/:id", showPost);
 postsRoutes.put("/:id", validate(createPostSchema), updatePostById);
