@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { isValidObjectId } from "mongoose";
 import DisciplineModel from "../models/disciplines.model";
 import StatusModel from "../models/status.model";
@@ -29,6 +30,11 @@ const validateObjectId = (value: string, fieldName: string): void => {
   }
 };
 
+const toUserResponse = (user: InstanceType<typeof UserModel>) => {
+  const { password: _password, ...safeUser } = user.toObject();
+  return safeUser;
+};
+
 // ─────────────────────────────── Usuários ────────────────────────────────────
 
 export const getAllUsers = async () => {
@@ -48,7 +54,11 @@ export const createUser = async (payload: CreateUserInput) => {
     throw createAppError("Email ou username já cadastrado", 409);
   }
 
-  return UserModel.create(payload);
+  const hashedPassword = await bcrypt.hash(payload.password, 10);
+
+  const user = await UserModel.create({ ...payload, password: hashedPassword });
+
+  return toUserResponse(user);
 };
 
 export const updateUser = async (id: string, payload: Partial<CreateUserInput>) => {
@@ -60,6 +70,26 @@ export const updateUser = async (id: string, payload: Partial<CreateUserInput>) 
     throw createAppError("Usuário não encontrado", 404);
   }
 
+  if (payload.email !== undefined || payload.username !== undefined) {
+    const duplicateFilters = [];
+
+    if (payload.email !== undefined) {
+      duplicateFilters.push({ email: payload.email });
+    }
+    if (payload.username !== undefined) {
+      duplicateFilters.push({ username: payload.username });
+    }
+
+    const existing = await UserModel.findOne({
+      _id: { $ne: id },
+      $or: duplicateFilters,
+    });
+
+    if (existing) {
+      throw createAppError("Email ou username já cadastrado", 409);
+    }
+  }
+
   if (payload.name !== undefined) {
     user.name = payload.name;
   }
@@ -67,7 +97,7 @@ export const updateUser = async (id: string, payload: Partial<CreateUserInput>) 
     user.username = payload.username;
   }
   if (payload.password !== undefined) {
-    user.password = payload.password;
+    user.password = await bcrypt.hash(payload.password, 10);
   }
   if (payload.email !== undefined) {
     user.email = payload.email;
@@ -78,7 +108,7 @@ export const updateUser = async (id: string, payload: Partial<CreateUserInput>) 
 
   await user.save();
 
-  return user;
+  return toUserResponse(user);
 };
 
 export const deleteUser = async (id: string) => {

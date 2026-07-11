@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { connectDB, disconnectDB } from "../config/database";
 import DisciplineModel from "../models/disciplines.model";
@@ -25,11 +26,13 @@ const seed = async (): Promise<void> => {
   ]);
 
   // Bloco: usuários de referência para validar criação permitida e bloqueada.
+  const hashedPassword = await bcrypt.hash("123456", 10);
+
   const [professor, student] = await UserModel.create([
     {
       name: "Ana Professora",
       username: "ana.prof",
-      password: "123456",
+      password: hashedPassword,
       email: "ana@professor.com",
       mobilePhone: "11999999999",
       externalId: "ext-prof-1",
@@ -39,7 +42,7 @@ const seed = async (): Promise<void> => {
     {
       name: "Carlos Aluno",
       username: "carlos.aluno",
-      password: "123456",
+      password: hashedPassword,
       email: "carlos@aluno.com",
       mobilePhone: "11888888888",
       externalId: "ext-student-1",

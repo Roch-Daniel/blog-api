@@ -1,4 +1,3 @@
-import "ascii-art-say";
 import "./config/zod";
 import dotenv from "dotenv";
 import app from "./app";

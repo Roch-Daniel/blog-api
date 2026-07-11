@@ -14,6 +14,7 @@ services:
       PORT: ${PORT:-3000}
       USE_IN_MEMORY_DB: ${USE_IN_MEMORY_DB:-false}
       MONGODB_URI: ${MONGODB_URI:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-adm}:${MONGO_INITDB_ROOT_PASSWORD:-adm}@db:27017/${MONGO_INITDB_DATABASE:-blog_api}?authSource=admin}
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       db:
         condition: service_healthy

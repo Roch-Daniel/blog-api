@@ -1,9 +1,0 @@
-{
-  "asciiArt": "blog-api",
-  "asciiArtPath": "./ascii-art.txt",
-  "messages": ["Enjoy your API!"],
-  "options": {
-    "padding": 2,
-    "maxMessageWidth": 15
-  }
-}

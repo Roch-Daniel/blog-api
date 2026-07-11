@@ -53,8 +53,8 @@ export const createPostSchema = z
       description: "ID da Disciplina relacionada",
       example: "60d5ecb8b392d21534c32b12",
     }),
-    authorId: objectIdSchema.meta({
-      description: "ID do Usuário autor do post",
+    authorId: objectIdSchema.optional().meta({
+      description: "ID do Usuário autor do post via token JWT",
       example: "60d5ecb8b392d21534c32b11",
     }),
     statusId: objectIdSchema.meta({

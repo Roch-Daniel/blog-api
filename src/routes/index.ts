@@ -1,6 +1,7 @@
 import { Router } from "express";
 import swaggerUi from "swagger-ui-express";
 import { openApiDocument } from "../docs/openapi";
+import authRoutes from "./auth.routes";
 import catalogRoutes from "./catalog.routes";
 import healthRoutes from "./health.routes";
 import postsRoutes from "./posts.routes";
@@ -19,6 +20,7 @@ routes.use(
     explorer: true,
   }),
 );
+routes.use("/auth", authRoutes);
 routes.use("/posts", postsRoutes);
 routes.use("/catalog", catalogRoutes);
 

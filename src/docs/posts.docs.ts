@@ -45,6 +45,32 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
 
   registry.registerPath({
     method: "get",
+    path: "/posts/all",
+    tags: ["Posts"],
+    summary: "Lista todas as postagens, incluindo as com status inativo (requer token JWT de professor)",
+    security: [{ bearerAuth: [] }],
+    responses: {
+      200: {
+        description: "Lista completa de posts retornada com sucesso",
+        content: {
+          "application/json": {
+            schema: z.object({
+              data: z.array(postResponseSchema),
+            }),
+          },
+        },
+      },
+      401: {
+        description: "Token não informado, inválido ou usuário inativo",
+      },
+      403: {
+        description: "Usuário não possui email @professor.com",
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
     path: "/posts/{id}",
     tags: ["Posts"],
     summary: "Retorna um post pelo ID",
@@ -77,7 +103,8 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
     method: "post",
     path: "/posts",
     tags: ["Posts"],
-    summary: "Cria um novo post",
+    summary: "Cria um novo post (requer token JWT de professor)",
+    security: [{ bearerAuth: [] }],
     request: {
       body: {
         content: {
@@ -101,11 +128,14 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
       400: {
         description: "Dados inválidos ou body vazio",
       },
+      401: {
+        description: "Token não informado, inválido ou usuário inativo",
+      },
       403: {
-        description: "Autor não possui email @professor.com",
+        description: "Usuário não possui email @professor.com",
       },
       404: {
-        description: "Autor, disciplina ou status não encontrado",
+        description: "Disciplina ou status não encontrado",
       },
     },
   });
@@ -114,7 +144,8 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
     method: "put",
     path: "/posts/{id}",
     tags: ["Posts"],
-    summary: "Atualiza post completo",
+    summary: "Atualiza post completo (requer token JWT de professor)",
+    security: [{ bearerAuth: [] }],
     request: {
       params: z.object({
         id: objectIdParam,
@@ -141,8 +172,11 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
       400: {
         description: "Dados inválidos ou body vazio",
       },
+      401: {
+        description: "Token não informado, inválido ou usuário inativo",
+      },
       403: {
-        description: "Autor não possui email @professor.com",
+        description: "Usuário não possui email @professor.com",
       },
       404: {
         description: "Post não encontrado",
@@ -154,7 +188,8 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
     method: "patch",
     path: "/posts/{id}",
     tags: ["Posts"],
-    summary: "Atualiza post parcialmente",
+    summary: "Atualiza post parcialmente (requer token JWT de professor)",
+    security: [{ bearerAuth: [] }],
     request: {
       params: z.object({
         id: objectIdParam,
@@ -181,6 +216,12 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
       400: {
         description: "Dados inválidos ou body vazio",
       },
+      401: {
+        description: "Token não informado, inválido ou usuário inativo",
+      },
+      403: {
+        description: "Usuário não possui email @professor.com",
+      },
       404: {
         description: "Post não encontrado",
       },
@@ -191,7 +232,8 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
     method: "delete",
     path: "/posts/{id}",
     tags: ["Posts"],
-    summary: "Remove um post",
+    summary: "Remove um post (requer token JWT de professor)",
+    security: [{ bearerAuth: [] }],
     request: {
       params: z.object({
         id: objectIdParam,
@@ -201,8 +243,11 @@ export function registerPostDocs(registry: OpenAPIRegistry) {
       204: {
         description: "Post removido com sucesso",
       },
+      401: {
+        description: "Token não informado, inválido ou usuário inativo",
+      },
       403: {
-        description: "Autor não possui email @professor.com",
+        description: "Usuário não possui email @professor.com",
       },
       404: {
         description: "Post não encontrado",

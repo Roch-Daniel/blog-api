@@ -28,6 +28,8 @@ jobs:
 
       - name: Rodar testes
         run: npm test
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'jwt-secret-apenas-para-ci' }}
 
       - name: Gerar build da aplicacao
         run: npm run build
@@ -48,7 +50,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Validar stage de testes do Dockerfile
-        run: docker build --target test -t blog-api:test .
+        run: docker build --build-arg JWT_SECRET=${{ secrets.JWT_SECRET || 'jwt-secret-apenas-para-ci' }} --target test -t blog-api:test .
 
       - name: Subir stack com Docker Compose
         run: docker compose up --build -d

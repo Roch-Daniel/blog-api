@@ -3,6 +3,7 @@ import {
   createPost,
   deletePost,
   getAllPosts,
+  getAllPostsForProfessor,
   getPostById,
   searchPosts,
   updatePost,
@@ -19,6 +20,18 @@ export const listPosts = async (
 ) => {
   try {
     const posts = await getAllPosts();
+
+    return res.status(200).json({
+      data: posts,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const listAllPosts = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const posts = await getAllPostsForProfessor();
 
     return res.status(200).json({
       data: posts,
@@ -50,7 +63,7 @@ export const storePost = async (
   next: NextFunction,
 ) => {
   try {
-    const post = await createPost(req.body);
+    const post = await createPost({ ...req.body, authorId: req.user!._id.toString() });
 
     return res.status(201).json({
       data: post,
@@ -66,7 +79,7 @@ export const updatePostById = async (
   next: NextFunction,
 ) => {
   try {
-    const post = await updatePost(getRouteId(req.params.id), req.body);
+    const post = await updatePost(getRouteId(req.params.id), { ...req.body, authorId: req.user!._id.toString() });
 
     return res.status(200).json({
       data: post,
@@ -82,7 +95,7 @@ export const patchPostById = async (
   next: NextFunction,
 ) => {
   try {
-    const post = await updatePost(getRouteId(req.params.id), req.body);
+    const post = await updatePost(getRouteId(req.params.id), { ...req.body, authorId: req.user!._id.toString() });
 
     return res.status(200).json({
       data: post,

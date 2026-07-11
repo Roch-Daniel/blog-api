@@ -13,6 +13,7 @@ import {
   updateStatusById, 
   removeStatus,
 } from "../controllers/catalog.controller";
+import { requireProfessor } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
 import {
   createDisciplineSchema,
@@ -29,20 +30,20 @@ const catalogRoutes = Router();
 
 // ── Usuários ──────────────────────────────────────────────────────────────────
 catalogRoutes.get("/users", listUsers);
-catalogRoutes.post("/users", validate(createUserSchema), storeUser);
-catalogRoutes.put("/users/:id", validate(updateUserSchema), updateUserById);
-catalogRoutes.delete("/users/:id", removeUser);
+catalogRoutes.post("/users", requireProfessor, validate(createUserSchema), storeUser);
+catalogRoutes.put("/users/:id", requireProfessor, validate(updateUserSchema), updateUserById);
+catalogRoutes.delete("/users/:id", requireProfessor, removeUser);
 
 // ── Disciplinas ───────────────────────────────────────────────────────────────
 catalogRoutes.get("/disciplines", listDisciplines);
-catalogRoutes.post("/disciplines", validate(createDisciplineSchema), storeDiscipline);
-catalogRoutes.put("/disciplines/:id", validate(updateDisciplineSchema), updateDisciplineById);
-catalogRoutes.delete("/disciplines/:id", removeDiscipline);
+catalogRoutes.post("/disciplines", requireProfessor, validate(createDisciplineSchema), storeDiscipline);
+catalogRoutes.put("/disciplines/:id", requireProfessor, validate(updateDisciplineSchema), updateDisciplineById);
+catalogRoutes.delete("/disciplines/:id", requireProfessor, removeDiscipline);
 
 // ── Status ────────────────────────────────────────────────────────────────────
 catalogRoutes.get("/status", listStatuses);
-catalogRoutes.post("/status", validate(createStatusSchema), storeStatus);
-catalogRoutes.put("/status/:id", validate(updateStatusSchema), updateStatusById);
-catalogRoutes.delete("/status/:id", removeStatus);
+catalogRoutes.post("/status", requireProfessor, validate(createStatusSchema), storeStatus);
+catalogRoutes.put("/status/:id", requireProfessor, validate(updateStatusSchema), updateStatusById);
+catalogRoutes.delete("/status/:id", requireProfessor, removeStatus);
 
 export default catalogRoutes;
