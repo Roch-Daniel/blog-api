@@ -36,3 +36,4 @@ export const disconnectDB = async (): Promise<void> => {
 
   await mongoose.disconnect();
 };
+
