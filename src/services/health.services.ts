@@ -1,11 +1,5 @@
 import mongoose from "mongoose";
-
-type HealthPayload = {
-  status: "ok" | "degraded";
-  service: "blog-api";
-  database: "in-memory" | "connected" | "disconnected";
-  timestamp: string;
-};
+import { HealthPayload } from "../schemas/health.schema";
 
 type HealthResponse = {
   httpStatus: 200 | 503;

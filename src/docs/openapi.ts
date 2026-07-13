@@ -5,6 +5,7 @@ import {
 import { registerAuthDocs } from "./auth.docs";
 import { registerPostDocs } from "./posts.docs";
 import { registerCatalogDocs } from "./catalog.docs";
+import { registerHealthDocs } from "./health.docs";
 
 export const registry = new OpenAPIRegistry();
 
@@ -19,6 +20,7 @@ registry.registerComponent("securitySchemes", "bearerAuth", {
 registerAuthDocs(registry);
 registerPostDocs(registry);
 registerCatalogDocs(registry);
+registerHealthDocs(registry);
 
 export const openApiDocument = new OpenApiGeneratorV3(
   registry.definitions,
