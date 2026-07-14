@@ -46,6 +46,8 @@ services:
 
   db:
     image: mongo:7
+    ports:
+      - "127.0.0.1:${MONGO_PORT:-27017}:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?defina MONGO_INITDB_ROOT_USERNAME no seu .env}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?defina MONGO_INITDB_ROOT_PASSWORD no seu .env}
