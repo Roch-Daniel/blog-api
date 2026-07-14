@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM node:20-bookworm-slim AS base
 
 WORKDIR /app
@@ -5,12 +6,17 @@ WORKDIR /app
 FROM base AS deps
 
 COPY package*.json ./
-RUN npm ci --no-audit --no-fund
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --no-audit --no-fund
+
+FROM deps AS dev
+ENV NODE_ENV=development
+
+COPY . .
+
+CMD ["npm", "run", "dev"]
 
 FROM deps AS test
-
-ARG JWT_SECRET
-ENV JWT_SECRET=$JWT_SECRET
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libcurl4 \
@@ -19,7 +25,9 @@ RUN apt-get update \
 COPY tsconfig.json jest.config.cjs ./
 COPY src ./src
 COPY tests ./tests
-RUN npm test
+
+RUN --mount=type=secret,id=jwt_secret \
+    JWT_SECRET="$(cat /run/secrets/jwt_secret)" npm test
 
 FROM deps AS build
 
@@ -30,15 +38,17 @@ RUN npm run build
 FROM base AS prod-deps
 
 COPY package*.json ./
-RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --omit=dev --no-audit --no-fund
 
 FROM gcr.io/distroless/nodejs20-debian12:nonroot AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production \
-    PORT=3000 \
-    PATH=/nodejs/bin
+    PORT=3000
+
+USER nonroot
 
 COPY --from=prod-deps --chown=nonroot:nonroot /app/node_modules ./node_modules
 COPY --from=build --chown=nonroot:nonroot /app/dist ./dist
