@@ -6,15 +6,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runner
+      target: ${DOCKER_TARGET:-runner}
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3000}:${PORT:-3000}"
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: ${PORT:-3000}
       USE_IN_MEMORY_DB: ${USE_IN_MEMORY_DB:-false}
-      MONGODB_URI: ${MONGODB_URI:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-adm}:${MONGO_INITDB_ROOT_PASSWORD:-adm}@db:27017/${MONGO_INITDB_DATABASE:-blog_api}?authSource=admin}
-      JWT_SECRET: ${JWT_SECRET}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@db:27017/${MONGO_INITDB_DATABASE:-blog_api}?authSource=admin}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no seu .env}
     depends_on:
       db:
         condition: service_healthy
@@ -26,13 +26,17 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     healthcheck:
       test:
         [
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3000/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+          "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
         ]
       interval: 30s
       timeout: 5s
@@ -42,19 +46,25 @@ services:
 
   db:
     image: mongo:7
-    ports:
-      - "${MONGO_PORT:-27017}:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-adm}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-adm}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?defina MONGO_INITDB_ROOT_USERNAME no seu .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?defina MONGO_INITDB_ROOT_PASSWORD no seu .env}
       MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-blog_api}
     volumes:
       - mongo_data:/data/db
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "mongosh -u \"$${MONGO_INITDB_ROOT_USERNAME}\" -p \"$${MONGO_INITDB_ROOT_PASSWORD}\" --authenticationDatabase admin --eval \"db.adminCommand('ping')\""
+          'mongosh -u "$${MONGO_INITDB_ROOT_USERNAME}" -p "$${MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "db.adminCommand(''ping'')"',
         ]
       interval: 10s
       timeout: 5s
