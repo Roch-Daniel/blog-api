@@ -15,7 +15,6 @@ import {
   CreateUserInput,
 } from "../schemas/catalog.schema";
 
-
 const isMemoryMode = (): boolean => process.env.USE_IN_MEMORY_DB === "true";
 
 const createAppError = (message: string, status: number): IAppError => {
@@ -42,7 +41,10 @@ export const getAllUsers = async () => {
     return getMemoryUsers();
   }
 
-  return UserModel.find({}, { name: 1, username: 1, email: 1, isActive: 1 }).sort({ name: 1 });
+  return UserModel.find(
+    {},
+    { name: 1, username: 1, email: 1, role: 1, isActive: 1 },
+  ).sort({ name: 1 });
 };
 
 export const createUser = async (payload: CreateUserInput) => {
@@ -61,7 +63,10 @@ export const createUser = async (payload: CreateUserInput) => {
   return toUserResponse(user);
 };
 
-export const updateUser = async (id: string, payload: Partial<CreateUserInput>) => {
+export const updateUser = async (
+  id: string,
+  payload: Partial<CreateUserInput>,
+) => {
   validateObjectId(id, "id");
 
   const user = await UserModel.findById(id);
@@ -102,6 +107,9 @@ export const updateUser = async (id: string, payload: Partial<CreateUserInput>) 
   if (payload.email !== undefined) {
     user.email = payload.email;
   }
+  if (payload.role !== undefined) {
+    user.role = payload.role;
+  }
   if (payload.isActive !== undefined) {
     user.isActive = payload.isActive;
   }
@@ -141,7 +149,10 @@ export const createDiscipline = async (payload: CreateDisciplineInput) => {
   return DisciplineModel.create(payload);
 };
 
-export const updateDiscipline = async (id: string, payload: Partial<CreateDisciplineInput>) => {
+export const updateDiscipline = async (
+  id: string,
+  payload: Partial<CreateDisciplineInput>,
+) => {
   validateObjectId(id, "id");
 
   const discipline = await DisciplineModel.findById(id);
@@ -195,7 +206,10 @@ export const createStatus = async (payload: CreateStatusInput) => {
   return StatusModel.create(payload);
 };
 
-export const updateStatus = async (id: string, payload: Partial<CreateStatusInput>) => {
+export const updateStatus = async (
+  id: string,
+  payload: Partial<CreateStatusInput>,
+) => {
   validateObjectId(id, "id");
 
   const status = await StatusModel.findById(id);
