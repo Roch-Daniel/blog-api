@@ -35,10 +35,20 @@ export const login = async (email: string, password: string) => {
   user.lastLogin = new Date();
   await user.save();
 
-  const token = jwt.sign({ id: user._id.toString(), email: user.email }, secret, { expiresIn: "8h" });
+  const token = jwt.sign(
+    { id: user._id.toString(), email: user.email },
+    secret,
+    { expiresIn: "8h" },
+  );
 
   return {
     token,
-    user: { id: user._id, name: user.name, email: user.email },
+    user: {
+      id: user._id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    },
   };
 };

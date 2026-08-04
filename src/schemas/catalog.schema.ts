@@ -1,5 +1,6 @@
 import "../config/zod";
 import { z } from "zod";
+import { USER_ROLES } from "../constants/roles.constant";
 
 export const createDisciplineSchema = z.object({
   label: z.string().trim().min(1, "Campo obrigatório não informado: label"),
@@ -21,6 +22,12 @@ export const createUserSchema = z.object({
     .min(1, "Campo obrigatório não informado: username"),
   password: z.string().min(1, "Campo obrigatório não informado: password"),
   email: z.email({ message: "Email inválido" }).trim(),
+  role: z
+    .enum(USER_ROLES, {
+      message: "Role inválido. Valores permitidos: PROFESSOR, ALUNO",
+    })
+    .optional()
+    .default("ALUNO"),
   mobilePhone: z.string().trim().optional(),
   externalId: z.string().trim().optional(),
   isActive: z.boolean().optional().default(true),
