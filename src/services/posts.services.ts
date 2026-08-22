@@ -17,6 +17,7 @@ import {
 } from "./memory-data.service";
 import { IPostPayload } from "../interfaces/IPosts";
 import { escapeRegex } from "../utils/regex";
+import { SearchFilters } from "../types/Serach";
 
 export type PostUpdatePayload = Partial<IPostPayload>;
 
@@ -133,9 +134,7 @@ export const getAllPostsForProfessor = async () => {
     return getMemoryPosts();
   }
 
-  return PostModel.find()
-    .populate(postPopulate)
-    .sort({ createDate: -1 });
+  return PostModel.find().populate(postPopulate).sort({ createDate: -1 });
 };
 
 export const getPostById = async (id: string) => {
@@ -425,16 +424,14 @@ export const deletePost = async (id: string) => {
   await PostModel.findByIdAndDelete(id);
 };
 
-export const searchPosts = async (term: string) => {
-  if (term === "") {
-    return [];
-  }
+export const getSearchPosts = async (filters: SearchFilters) => {
+  const { term = "", discipline = "", author = "" } = filters;
+
+  if (!term && !discipline && !author) return [];
 
   if (isMemoryMode()) {
     return searchMemoryPosts(term);
   }
-
-  const escapedTerm = escapeRegex(term);
 
   const activeStatuses = await StatusModel.find({
     isActive: true,
@@ -442,30 +439,72 @@ export const searchPosts = async (term: string) => {
 
   const activeStatusIds = activeStatuses.map((status) => status._id);
 
+  let disciplineId = null;
+  let authorId = null;
+
+  if (discipline) {
+    const escapedDiscipline = escapeRegex(discipline);
+    const findDiscipline = await DisciplineModel.findOne({
+      label: {
+        $regex: escapedDiscipline,
+        $options: "i",
+      },
+    });
+    if (!findDiscipline) {
+      return [];
+    }
+    disciplineId = findDiscipline._id;
+  }
+
+  if (author) {
+    const escapedAuthor = escapeRegex(author);
+    const findAuthor = await UserModel.findOne({
+      name: {
+        $regex: escapedAuthor,
+        $options: "i",
+      },
+    });
+    if (!findAuthor) {
+      return [];
+    }
+
+    authorId = findAuthor._id;
+  }
+
+  const escapedTerm = escapeRegex(term);
+
   return PostModel.find({
     status: {
       $in: activeStatusIds,
     },
-    $or: [
-      {
-        title: {
-          $regex: escapedTerm,
-          $options: "i",
+    ...(disciplineId && {
+      discipline: disciplineId,
+    }),
+    ...(authorId && {
+      author: authorId,
+    }),
+    ...(term && {
+      $or: [
+        {
+          title: {
+            $regex: escapedTerm,
+            $options: "i",
+          },
         },
-      },
-      {
-        summary: {
-          $regex: escapedTerm,
-          $options: "i",
+        {
+          summary: {
+            $regex: escapedTerm,
+            $options: "i",
+          },
         },
-      },
-      {
-        content: {
-          $regex: escapedTerm,
-          $options: "i",
+        {
+          content: {
+            $regex: escapedTerm,
+            $options: "i",
+          },
         },
-      },
-    ],
+      ],
+    }),
   })
     .populate(postPopulate)
     .sort({ createDate: -1 });
