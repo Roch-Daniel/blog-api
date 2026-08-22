@@ -35,3 +35,6 @@ docker-data/
 *.pem
 *.p12
 *.crt
+
+# Outros
+/src/scripts
