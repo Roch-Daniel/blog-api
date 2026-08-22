@@ -110,7 +110,9 @@ describe("Catálogo - autenticação nas rotas de escrita", () => {
 
 describe("GET /users", () => {
   it("deve listar os usuários cadastrados", async () => {
-    const response = await request(app).get("/catalog/users");
+    const response = await request(app)
+      .get("/catalog/users")
+      .set("Authorization", `Bearer ${professorToken}`);
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual(
