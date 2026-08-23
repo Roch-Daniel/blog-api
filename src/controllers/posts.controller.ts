@@ -146,6 +146,9 @@ export const searchPosts = async (
       ...(req.query["author"] && {
         author: String(req.query["author"]).trim(),
       }),
+      ...(req.query["series"] && {
+        series: String(req.query["series"]).trim(),
+      }),
     };
 
     const posts = await getSearchPosts(filters);
