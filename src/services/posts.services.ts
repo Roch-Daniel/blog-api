@@ -18,6 +18,7 @@ import {
 import { IPostPayload } from "../interfaces/IPosts";
 import { escapeRegex } from "../utils/regex";
 import { SearchFilters } from "../types/Serach";
+import { isNumericString } from "../utils/validation";
 
 export type PostUpdatePayload = Partial<IPostPayload>;
 
@@ -425,9 +426,9 @@ export const deletePost = async (id: string) => {
 };
 
 export const getSearchPosts = async (filters: SearchFilters) => {
-  const { term = "", discipline = "", author = "" } = filters;
+  const { term = "", discipline = "", author = "", series = "" } = filters;
 
-  if (!term && !discipline && !author) return [];
+  if (!term && !discipline && !author && !series) return [];
 
   if (isMemoryMode()) {
     return searchMemoryPosts(term);
@@ -471,6 +472,10 @@ export const getSearchPosts = async (filters: SearchFilters) => {
     authorId = findAuthor._id;
   }
 
+  if (series && !isNumericString(series)) {
+    return [];
+  }
+
   const escapedTerm = escapeRegex(term);
 
   return PostModel.find({
@@ -482,6 +487,9 @@ export const getSearchPosts = async (filters: SearchFilters) => {
     }),
     ...(authorId && {
       author: authorId,
+    }),
+    ...(series && {
+      series: `${series}º ano`,
     }),
     ...(term && {
       $or: [
