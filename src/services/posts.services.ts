@@ -329,6 +329,7 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
       series: payload.series ?? storedPost.series,
       semester: payload.semester ?? storedPost.semester,
       discipline,
+      isFeatured: payload.isFeatured ?? storedPost.isFeatured,
       author: {
         _id: author._id,
         name: author.name,
@@ -375,6 +376,7 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
   if (payload.title !== undefined) post.title = payload.title;
   if (payload.content !== undefined) post.content = payload.content;
   if (payload.summary !== undefined) post.summary = payload.summary;
+  if (payload.isFeatured !== undefined) post.isFeatured = payload.isFeatured;
   if (payload.imageUrl !== undefined) post.imageUrl = payload.imageUrl;
   if (payload.series !== undefined) post.series = payload.series;
   if (payload.semester !== undefined) post.semester = payload.semester;
@@ -507,6 +509,12 @@ export const getSearchPosts = async (filters: SearchFilters) => {
         },
         {
           content: {
+            $regex: escapedTerm,
+            $options: "i",
+          },
+        },
+        {
+          author: {
             $regex: escapedTerm,
             $options: "i",
           },

@@ -29,6 +29,7 @@ export interface IMemoryPost {
   series?: string;
   semester?: string;
   discipline: IMemoryDiscipline;
+  isFeatured?: boolean;
   author: Pick<IMemoryUser, "_id" | "name" | "username" | "email">;
   status: Pick<IMemoryStatus, "_id" | "label" | "order">;
   createDate: string;
