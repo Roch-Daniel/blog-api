@@ -480,6 +480,17 @@ export const getSearchPosts = async (filters: SearchFilters) => {
 
   const escapedTerm = escapeRegex(term);
 
+  const matchingAuthors = term
+    ? await UserModel.find({
+        $or: [
+          { name: { $regex: escapedTerm, $options: "i" } },
+          { username: { $regex: escapedTerm, $options: "i" } },
+        ],
+      }).select("_id")
+    : [];
+
+  const matchingAuthorIds = matchingAuthors.map((user) => user._id);
+
   return PostModel.find({
     status: {
       $in: activeStatusIds,
@@ -513,12 +524,9 @@ export const getSearchPosts = async (filters: SearchFilters) => {
             $options: "i",
           },
         },
-        {
-          author: {
-            $regex: escapedTerm,
-            $options: "i",
-          },
-        },
+        ...(matchingAuthorIds.length > 0
+          ? [{ author: { $in: matchingAuthorIds } }]
+          : []),
       ],
     }),
   })

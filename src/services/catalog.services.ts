@@ -14,6 +14,7 @@ import {
   CreateStatusInput,
   CreateUserInput,
 } from "../schemas/catalog.schema";
+import { RoleUsers } from "../types/UserRole";
 
 const isMemoryMode = (): boolean => process.env.USE_IN_MEMORY_DB === "true";
 
@@ -58,7 +59,20 @@ export const createUser = async (payload: CreateUserInput) => {
 
   const hashedPassword = await bcrypt.hash(payload.password, 10);
 
-  const user = await UserModel.create({ ...payload, password: hashedPassword });
+  const role: RoleUsers = payload.email.endsWith("@professor.com")
+    ? "PROFESSOR"
+    : "ALUNO";
+
+  const user = await UserModel.create({
+    name: payload.name,
+    username: payload.username,
+    password: hashedPassword,
+    email: payload.email,
+    role,
+    mobilePhone: payload.mobilePhone,
+    externalId: payload.externalId,
+    isActive: payload.isActive,
+  });
 
   return toUserResponse(user);
 };
@@ -106,9 +120,6 @@ export const updateUser = async (
   }
   if (payload.email !== undefined) {
     user.email = payload.email;
-  }
-  if (payload.role !== undefined) {
-    user.role = payload.role;
   }
   if (payload.isActive !== undefined) {
     user.isActive = payload.isActive;

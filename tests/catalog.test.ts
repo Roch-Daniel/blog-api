@@ -23,7 +23,7 @@ beforeEach(async () => {
   await DisciplineModel.deleteMany({});
   await StatusModel.deleteMany({});
 
-  const hashedPassword = await bcrypt.hash("123456", 10);
+  const hashedPassword = await bcrypt.hash("A12345678", 10);
 
   const user = await UserModel.create({
     name: "Prof Teste",
@@ -52,7 +52,7 @@ beforeEach(async () => {
 
   const profLogin = await request(app)
     .post("/auth/login")
-    .send({ email: "prof@professor.com", password: "123456" });
+    .send({ email: "prof@professor.com", password: "A12345678" });
   professorToken = profLogin.body.data.token;
 });
 
@@ -69,7 +69,7 @@ describe("Catálogo - autenticação nas rotas de escrita", () => {
     const response = await request(app).post("/catalog/users").send({
       name: "Sem Token",
       username: "sem.token",
-      password: "123456",
+      password: "A12345678",
       email: "sem.token@professor.com",
     });
 
@@ -78,7 +78,7 @@ describe("Catálogo - autenticação nas rotas de escrita", () => {
   });
 
   it("deve retornar 403 ao criar disciplina com token de aluno", async () => {
-    const hashedPassword = await bcrypt.hash("123456", 10);
+    const hashedPassword = await bcrypt.hash("A12345678", 10);
     await UserModel.create({
       name: "Aluno Teste",
       username: "aluno.teste",
@@ -90,7 +90,7 @@ describe("Catálogo - autenticação nas rotas de escrita", () => {
 
     const studentLogin = await request(app)
       .post("/auth/login")
-      .send({ email: "aluno@gmail.com", password: "123456" });
+      .send({ email: "aluno@gmail.com", password: "A12345678" });
 
     const response = await request(app)
       .post("/catalog/disciplines")
@@ -163,7 +163,7 @@ describe("POST /users", () => {
       .send({
         name: "Outro Prof",
         username: "outro.prof",
-        password: "123456",
+        password: "AA1234567878",
         email: "prof@professor.com",
         isActive: true,
       });
@@ -179,7 +179,7 @@ describe("POST /users", () => {
       .send({
         name: "Prof. Outro",
         username: "prof.teste",
-        password: "123456",
+        password: "A12345678",
         email: "outro@professor.com",
         isActive: true,
       });
@@ -206,7 +206,7 @@ describe("POST /users", () => {
       .send({
         name: "Prof",
         username: "prof.x",
-        password: "123456",
+        password: "A12345678",
         email: "nao-e-um-email",
       });
 
@@ -241,7 +241,7 @@ describe("PUT /users/:id", () => {
   });
 
   it("deve retornar 409 ao atualizar e-mail para um já cadastrado", async () => {
-    const hashedPassword = await bcrypt.hash("123456", 10);
+    const hashedPassword = await bcrypt.hash("A12345678", 10);
     await UserModel.create({
       name: "Prof Duplicado",
       username: "prof.duplicado",

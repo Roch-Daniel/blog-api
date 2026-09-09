@@ -27,7 +27,7 @@ beforeEach(async () => {
   await DisciplineModel.deleteMany({});
   await StatusModel.deleteMany({});
 
-  const hashedPassword = await bcrypt.hash("123456", 10);
+  const hashedPassword = await bcrypt.hash("A12345678", 10);
 
   const professor = await UserModel.create({
     name: "Prof Teste",
@@ -73,12 +73,12 @@ beforeEach(async () => {
 
   const profLogin = await request(app)
     .post("/auth/login")
-    .send({ email: "prof@professor.com", password: "123456" });
+    .send({ email: "prof@professor.com", password: "A12345678" });
   professorToken = profLogin.body.data.token;
 
   const studentLogin = await request(app)
     .post("/auth/login")
-    .send({ email: "aluno@gmail.com", password: "123456" });
+    .send({ email: "aluno@gmail.com", password: "A12345678" });
   studentToken = studentLogin.body.data.token;
 });
 
@@ -90,12 +90,11 @@ afterAll(async () => {
   }
 });
 
-
 describe("POST /auth/login", () => {
   it("deve realizar login com credenciais válidas", async () => {
     const response = await request(app)
       .post("/auth/login")
-      .send({ email: "prof@professor.com", password: "123456" });
+      .send({ email: "prof@professor.com", password: "A12345678" });
 
     expect(response.status).toBe(200);
     expect(response.body.data).toHaveProperty("token");
@@ -114,7 +113,7 @@ describe("POST /auth/login", () => {
   it("deve retornar 401 para email não cadastrado", async () => {
     const response = await request(app)
       .post("/auth/login")
-      .send({ email: "naoexiste@professor.com", password: "123456" });
+      .send({ email: "naoexiste@professor.com", password: "A12345678" });
 
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty("message");
@@ -127,7 +126,6 @@ describe("POST /auth/login", () => {
     expect(response.body).toHaveProperty("message");
   });
 });
-
 
 describe("GET /posts", () => {
   it("deve listar os posts persistidos no MongoDB", async () => {
@@ -145,7 +143,6 @@ describe("GET /posts", () => {
     });
   });
 });
-
 
 describe("GET /posts/all", () => {
   it("deve retornar 401 sem token", async () => {
@@ -191,7 +188,6 @@ describe("GET /posts/all", () => {
   });
 });
 
-
 describe("GET /posts/:id", () => {
   it("deve retornar erro para id inválido", async () => {
     const response = await request(app).get("/posts/teste");
@@ -212,7 +208,6 @@ describe("GET /posts/:id", () => {
     );
   });
 });
-
 
 describe("POST /posts - autenticação", () => {
   it("deve retornar 401 quando token estiver ausente", async () => {
@@ -285,7 +280,9 @@ describe("POST /posts - validação de campos", () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Campo obrigatório não informado: título");
+    expect(response.body.message).toBe(
+      "Campo obrigatório não informado: título",
+    );
   });
 
   it("deve retornar 400 quando título for apenas HTML vazio", async () => {
@@ -301,7 +298,9 @@ describe("POST /posts - validação de campos", () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Campo obrigatório não informado: título");
+    expect(response.body.message).toBe(
+      "Campo obrigatório não informado: título",
+    );
   });
 
   it("deve retornar 400 com mensagem correta quando ID tiver formato inválido", async () => {
@@ -373,7 +372,6 @@ describe("POST /posts", () => {
     expect(response.body.message).toBe("Body da requisição não informado");
   });
 });
-
 
 describe("PUT /posts/:id - autenticação", () => {
   it("deve retornar 401 quando token estiver ausente no PUT", async () => {
@@ -450,7 +448,9 @@ describe("PUT /posts/:id - validação de campos", () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Campo obrigatório não informado: semestre");
+    expect(response.body.message).toBe(
+      "Campo obrigatório não informado: semestre",
+    );
   });
 
   it("deve sanitizar tags HTML nos campos de texto no PUT", async () => {
@@ -468,7 +468,9 @@ describe("PUT /posts/:id - validação de campos", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.data.title).toBe("Título Atualizado via PUT");
-    expect(response.body.data.content).toBe("Conteúdo atualizado via PUT com HTML");
+    expect(response.body.data.content).toBe(
+      "Conteúdo atualizado via PUT com HTML",
+    );
     expect(response.body.data.summary).toBe("Resumo atualizado via PUT");
   });
 });
@@ -489,7 +491,10 @@ describe("PUT /posts/:id", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual(
-      expect.objectContaining({ _id: postId, title: "Post atualizado via PUT" }),
+      expect.objectContaining({
+        _id: postId,
+        title: "Post atualizado via PUT",
+      }),
     );
   });
 
@@ -602,11 +607,17 @@ describe("PATCH /posts/:id", () => {
     const response = await request(app)
       .patch(`/posts/${postId}`)
       .set("Authorization", `Bearer ${professorToken}`)
-      .send({ title: "Post atualizado via PATCH", summary: "Resumo atualizado via PATCH" });
+      .send({
+        title: "Post atualizado via PATCH",
+        summary: "Resumo atualizado via PATCH",
+      });
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual(
-      expect.objectContaining({ _id: postId, title: "Post atualizado via PATCH" }),
+      expect.objectContaining({
+        _id: postId,
+        title: "Post atualizado via PATCH",
+      }),
     );
   });
 
@@ -666,6 +677,8 @@ describe("GET /posts/search", () => {
       .get("/posts/search")
       .query({ q: "inicial" });
 
+    console.log(response);
+
     expect(response.status).toBe(200);
 
     expect(response.body.data).toEqual(
@@ -701,7 +714,7 @@ describe("GET /posts/search", () => {
   it("deve retornar lista vazia quando não encontrar resultados", async () => {
     const response = await request(app)
       .get("/posts/search")
-      .query({ q: "texto-que-nao-existe-123456" });
+      .query({ q: "texto-que-nao-existe-A12345678" });
 
     expect(response.status).toBe(200);
     expect(response.body.data).toEqual([]);
