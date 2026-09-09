@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { IUser } from "../interfaces/IUser";
+import { USER_ROLES } from "../constants/roles.constant";
 
 const UserSchema = new Schema<IUser>(
   {
@@ -43,6 +44,12 @@ const UserSchema = new Schema<IUser>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    role: {
+      type: String,
+      required: true,
+      enum: USER_ROLES,
+      default: "ALUNO",
     },
   },
   {

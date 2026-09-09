@@ -17,6 +17,8 @@ import {
 } from "./memory-data.service";
 import { IPostPayload } from "../interfaces/IPosts";
 import { escapeRegex } from "../utils/regex";
+import { SearchFilters } from "../types/Serach";
+import { isNumericString } from "../utils/validation";
 
 export type PostUpdatePayload = Partial<IPostPayload>;
 
@@ -133,9 +135,7 @@ export const getAllPostsForProfessor = async () => {
     return getMemoryPosts();
   }
 
-  return PostModel.find()
-    .populate(postPopulate)
-    .sort({ createDate: -1 });
+  return PostModel.find().populate(postPopulate).sort({ createDate: -1 });
 };
 
 export const getPostById = async (id: string) => {
@@ -329,6 +329,7 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
       series: payload.series ?? storedPost.series,
       semester: payload.semester ?? storedPost.semester,
       discipline,
+      isFeatured: payload.isFeatured ?? storedPost.isFeatured,
       author: {
         _id: author._id,
         name: author.name,
@@ -375,6 +376,7 @@ export const updatePost = async (id: string, payload: PostUpdatePayload) => {
   if (payload.title !== undefined) post.title = payload.title;
   if (payload.content !== undefined) post.content = payload.content;
   if (payload.summary !== undefined) post.summary = payload.summary;
+  if (payload.isFeatured !== undefined) post.isFeatured = payload.isFeatured;
   if (payload.imageUrl !== undefined) post.imageUrl = payload.imageUrl;
   if (payload.series !== undefined) post.series = payload.series;
   if (payload.semester !== undefined) post.semester = payload.semester;
@@ -425,16 +427,14 @@ export const deletePost = async (id: string) => {
   await PostModel.findByIdAndDelete(id);
 };
 
-export const searchPosts = async (term: string) => {
-  if (term === "") {
-    return [];
-  }
+export const getSearchPosts = async (filters: SearchFilters) => {
+  const { term = "", discipline = "", author = "", series = "" } = filters;
+
+  if (!term && !discipline && !author && !series) return [];
 
   if (isMemoryMode()) {
     return searchMemoryPosts(term);
   }
-
-  const escapedTerm = escapeRegex(term);
 
   const activeStatuses = await StatusModel.find({
     isActive: true,
@@ -442,30 +442,93 @@ export const searchPosts = async (term: string) => {
 
   const activeStatusIds = activeStatuses.map((status) => status._id);
 
+  let disciplineId = null;
+  let authorId = null;
+
+  if (discipline) {
+    const escapedDiscipline = escapeRegex(discipline);
+    const findDiscipline = await DisciplineModel.findOne({
+      label: {
+        $regex: escapedDiscipline,
+        $options: "i",
+      },
+    });
+    if (!findDiscipline) {
+      return [];
+    }
+    disciplineId = findDiscipline._id;
+  }
+
+  if (author) {
+    const escapedAuthor = escapeRegex(author);
+    const findAuthor = await UserModel.findOne({
+      name: {
+        $regex: escapedAuthor,
+        $options: "i",
+      },
+    });
+    if (!findAuthor) {
+      return [];
+    }
+
+    authorId = findAuthor._id;
+  }
+
+  if (series && !isNumericString(series)) {
+    return [];
+  }
+
+  const escapedTerm = escapeRegex(term);
+
+  const matchingAuthors = term
+    ? await UserModel.find({
+        $or: [
+          { name: { $regex: escapedTerm, $options: "i" } },
+          { username: { $regex: escapedTerm, $options: "i" } },
+        ],
+      }).select("_id")
+    : [];
+
+  const matchingAuthorIds = matchingAuthors.map((user) => user._id);
+
   return PostModel.find({
     status: {
       $in: activeStatusIds,
     },
-    $or: [
-      {
-        title: {
-          $regex: escapedTerm,
-          $options: "i",
+    ...(disciplineId && {
+      discipline: disciplineId,
+    }),
+    ...(authorId && {
+      author: authorId,
+    }),
+    ...(series && {
+      series: `${series}º ano`,
+    }),
+    ...(term && {
+      $or: [
+        {
+          title: {
+            $regex: escapedTerm,
+            $options: "i",
+          },
         },
-      },
-      {
-        summary: {
-          $regex: escapedTerm,
-          $options: "i",
+        {
+          summary: {
+            $regex: escapedTerm,
+            $options: "i",
+          },
         },
-      },
-      {
-        content: {
-          $regex: escapedTerm,
-          $options: "i",
+        {
+          content: {
+            $regex: escapedTerm,
+            $options: "i",
+          },
         },
-      },
-    ],
+        ...(matchingAuthorIds.length > 0
+          ? [{ author: { $in: matchingAuthorIds } }]
+          : []),
+      ],
+    }),
   })
     .populate(postPopulate)
     .sort({ createDate: -1 });

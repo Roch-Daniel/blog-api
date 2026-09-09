@@ -8,6 +8,7 @@ export interface IPostPayload {
   series?: string;
   semester?: string;
   disciplineId: string;
+  isFeatured?: boolean;
   authorId: string;
   statusId: string;
 }
@@ -20,6 +21,7 @@ export interface IPost extends Document {
   series?: string;
   semester?: string;
   discipline: Types.ObjectId;
+  isFeatured: boolean;
   author: Types.ObjectId;
   status: Types.ObjectId;
   createDate: Date;

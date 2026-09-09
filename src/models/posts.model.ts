@@ -35,6 +35,10 @@ const PostSchema = new Schema<IPost>(
       ref: "Discipline",
       required: true,
     },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
     author: {
       type: Schema.Types.ObjectId,
       ref: "User",

@@ -5,7 +5,7 @@ import {
   getAllPosts,
   getAllPostsForProfessor,
   getPostById,
-  searchPosts,
+  getSearchPosts,
   updatePost,
 } from "../services/posts.services";
 
@@ -29,7 +29,11 @@ export const listPosts = async (
   }
 };
 
-export const listAllPosts = async (_req: Request, res: Response, next: NextFunction) => {
+export const listAllPosts = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const posts = await getAllPostsForProfessor();
 
@@ -63,7 +67,10 @@ export const storePost = async (
   next: NextFunction,
 ) => {
   try {
-    const post = await createPost({ ...req.body, authorId: req.user!._id.toString() });
+    const post = await createPost({
+      ...req.body,
+      authorId: req.user!._id.toString(),
+    });
 
     return res.status(201).json({
       data: post,
@@ -79,7 +86,10 @@ export const updatePostById = async (
   next: NextFunction,
 ) => {
   try {
-    const post = await updatePost(getRouteId(req.params.id), { ...req.body, authorId: req.user!._id.toString() });
+    const post = await updatePost(getRouteId(req.params.id), {
+      ...req.body,
+      authorId: req.user!._id.toString(),
+    });
 
     return res.status(200).json({
       data: post,
@@ -95,7 +105,10 @@ export const patchPostById = async (
   next: NextFunction,
 ) => {
   try {
-    const post = await updatePost(getRouteId(req.params.id), { ...req.body, authorId: req.user!._id.toString() });
+    const post = await updatePost(getRouteId(req.params.id), {
+      ...req.body,
+      authorId: req.user!._id.toString(),
+    });
 
     return res.status(200).json({
       data: post,
@@ -119,19 +132,28 @@ export const removePost = async (
   }
 };
 
-export const searchPostsByTerm = async (
+export const searchPosts = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const term = String(req.query.q ?? "").trim();
+    const filters = {
+      ...(req.query["discipline"] && {
+        discipline: String(req.query["discipline"]).trim(),
+      }),
+      ...(req.query.q && { term: String(req.query.q ?? "").trim() }),
+      ...(req.query["author"] && {
+        author: String(req.query["author"]).trim(),
+      }),
+      ...(req.query["series"] && {
+        series: String(req.query["series"]).trim(),
+      }),
+    };
 
-    const posts = await searchPosts(term);
+    const posts = await getSearchPosts(filters);
 
-    return res.status(200).json({
-      data: posts,
-    });
+    return res.status(200).json({ data: posts });
   } catch (error) {
     next(error);
   }

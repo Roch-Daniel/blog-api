@@ -14,7 +14,7 @@ import {
   CreateStatusInput,
   CreateUserInput,
 } from "../schemas/catalog.schema";
-
+import { RoleUsers } from "../types/UserRole";
 
 const isMemoryMode = (): boolean => process.env.USE_IN_MEMORY_DB === "true";
 
@@ -42,7 +42,10 @@ export const getAllUsers = async () => {
     return getMemoryUsers();
   }
 
-  return UserModel.find({}, { name: 1, username: 1, email: 1, isActive: 1 }).sort({ name: 1 });
+  return UserModel.find(
+    {},
+    { name: 1, username: 1, email: 1, role: 1, isActive: 1 },
+  ).sort({ name: 1 });
 };
 
 export const createUser = async (payload: CreateUserInput) => {
@@ -56,12 +59,28 @@ export const createUser = async (payload: CreateUserInput) => {
 
   const hashedPassword = await bcrypt.hash(payload.password, 10);
 
-  const user = await UserModel.create({ ...payload, password: hashedPassword });
+  const role: RoleUsers = payload.email.endsWith("@professor.com")
+    ? "PROFESSOR"
+    : "ALUNO";
+
+  const user = await UserModel.create({
+    name: payload.name,
+    username: payload.username,
+    password: hashedPassword,
+    email: payload.email,
+    role,
+    mobilePhone: payload.mobilePhone,
+    externalId: payload.externalId,
+    isActive: payload.isActive,
+  });
 
   return toUserResponse(user);
 };
 
-export const updateUser = async (id: string, payload: Partial<CreateUserInput>) => {
+export const updateUser = async (
+  id: string,
+  payload: Partial<CreateUserInput>,
+) => {
   validateObjectId(id, "id");
 
   const user = await UserModel.findById(id);
@@ -141,7 +160,10 @@ export const createDiscipline = async (payload: CreateDisciplineInput) => {
   return DisciplineModel.create(payload);
 };
 
-export const updateDiscipline = async (id: string, payload: Partial<CreateDisciplineInput>) => {
+export const updateDiscipline = async (
+  id: string,
+  payload: Partial<CreateDisciplineInput>,
+) => {
   validateObjectId(id, "id");
 
   const discipline = await DisciplineModel.findById(id);
@@ -195,7 +217,10 @@ export const createStatus = async (payload: CreateStatusInput) => {
   return StatusModel.create(payload);
 };
 
-export const updateStatus = async (id: string, payload: Partial<CreateStatusInput>) => {
+export const updateStatus = async (
+  id: string,
+  payload: Partial<CreateStatusInput>,
+) => {
   validateObjectId(id, "id");
 
   const status = await StatusModel.findById(id);

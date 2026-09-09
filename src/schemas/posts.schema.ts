@@ -15,9 +15,17 @@ const sanitizedField = (label: string, minLen: number, maxLen?: number) =>
     .string({ error: "Campo obrigatório não informado: " + label })
     .trim()
     .transform(stripHtml)
-    .refine((val) => val.length > 0, { message: "Campo obrigatório não informado: " + label })
-    .refine((val) => val.length >= minLen, { message: "O campo " + label + " deve ter pelo menos " + minLen + " caracteres" })
-    .refine((val) => maxLen === undefined || val.length <= maxLen, { message: "O campo " + label + " deve ter no maximo " + maxLen + " caracteres" });
+    .refine((val) => val.length > 0, {
+      message: "Campo obrigatório não informado: " + label,
+    })
+    .refine((val) => val.length >= minLen, {
+      message:
+        "O campo " + label + " deve ter pelo menos " + minLen + " caracteres",
+    })
+    .refine((val) => maxLen === undefined || val.length <= maxLen, {
+      message:
+        "O campo " + label + " deve ter no maximo " + maxLen + " caracteres",
+    });
 
 const objectIdSchema = z
   .string()
@@ -45,13 +53,20 @@ export const createPostSchema = z
       description: "Série/Ano letivo relacionado (opcional)",
       example: "3º Ano Ensino Médio",
     }),
-    semester: z.string({ error: "Campo obrigatório não informado: semestre" }).trim().meta({
-      description: "Semestre letivo",
-      example: "1",
-    }),
+    semester: z
+      .string({ error: "Campo obrigatório não informado: semestre" })
+      .trim()
+      .meta({
+        description: "Semestre letivo",
+        example: "1",
+      }),
     disciplineId: objectIdSchema.meta({
       description: "ID da Disciplina relacionada",
       example: "60d5ecb8b392d21534c32b12",
+    }),
+    isFeatured: z.boolean().optional().default(false).meta({
+      description: "Indica se o post é destacado",
+      example: false,
     }),
     authorId: objectIdSchema.optional().meta({
       description: "ID do Usuário autor do post via token JWT",

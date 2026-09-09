@@ -19,7 +19,11 @@ export const createUserSchema = z.object({
     .string()
     .trim()
     .min(1, "Campo obrigatório não informado: username"),
-  password: z.string().min(1, "Campo obrigatório não informado: password"),
+  password: z
+    .string()
+    .min(8, "A senha precisa ter no mínimo 8 caracteres")
+    .regex(/[A-Za-z]/, "A senha precisa conter ao menos uma letra")
+    .regex(/[0-9]/, "A senha precisa conter ao menos um número"),
   email: z.email({ message: "Email inválido" }).trim(),
   mobilePhone: z.string().trim().optional(),
   externalId: z.string().trim().optional(),
