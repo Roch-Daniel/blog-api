@@ -175,6 +175,7 @@ export const createPost = async (payload?: IPostPayload) => {
     disciplineId,
     authorId,
     statusId,
+    isFeatured = false,
   } = payload;
 
   if (
@@ -236,6 +237,7 @@ export const createPost = async (payload?: IPostPayload) => {
       series,
       semester,
       discipline,
+      isFeatured,
       author: {
         _id: author._id,
         name: author.name,
@@ -262,6 +264,7 @@ export const createPost = async (payload?: IPostPayload) => {
     series,
     semester,
     discipline: disciplineId,
+    isFeatured,
     author: authorId,
     status: statusId,
   });
