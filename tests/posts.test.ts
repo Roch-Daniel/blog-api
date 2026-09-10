@@ -341,6 +341,29 @@ describe("POST /posts - validação de campos", () => {
 });
 
 describe("POST /posts", () => {
+  it.each([true, false, undefined])(
+    "deve persistir o destaque na criação com isFeatured=%s",
+    async (isFeatured) => {
+      const response = await request(app)
+        .post("/posts")
+        .set("Authorization", `Bearer ${professorToken}`)
+        .send({
+          title: "Post com destaque",
+          content: "Conteúdo completo do post",
+          summary: "Resumo completo do post",
+          disciplineId,
+          statusId,
+          semester: "1",
+          ...(isFeatured === undefined ? {} : { isFeatured }),
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.data.isFeatured).toBe(isFeatured ?? false);
+      const storedPost = await PostModel.findById(response.body.data._id);
+      expect(storedPost?.isFeatured).toBe(isFeatured ?? false);
+    },
+  );
+
   it("deve criar post quando o autor possui email de professor", async () => {
     const response = await request(app)
       .post("/posts")
