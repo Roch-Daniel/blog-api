@@ -45,8 +45,10 @@ export const createPostSchema = z
       description: "Resumo do post",
       example: "Uma breve introdução sobre o assunto abordado.",
     }),
-    imageUrl: z.url("imageUrl deve ser uma URL válida").optional().meta({
-      description: "URL da imagem de capa (opcional)",
+    imageUrl: z.union([z.url("imageUrl deve ser uma URL válida"), z.literal("")], {
+      error: "imageUrl deve ser uma URL válida",
+    }).optional().meta({
+      description: "URL da imagem de capa (opcional); envie uma string vazia para remover a imagem",
       example: "https://exemplo.com/imagem.jpg",
     }),
     series: z.string().trim().optional().meta({

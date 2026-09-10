@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import { USER_ROLES } from "../constants/roles.constant";
 
 export function registerAuthDocs(registry: OpenAPIRegistry) {
   const loginRequestSchema = z.object({
@@ -20,7 +21,11 @@ export function registerAuthDocs(registry: OpenAPIRegistry) {
     user: z.object({
       id: z.string().meta({ description: "ID do usuário" }),
       name: z.string().meta({ description: "Nome do usuário" }),
+      username: z.string().meta({ description: "Nome de acesso do usuário" }),
       email: z.string().meta({ description: "Email do usuário" }),
+      role: z.enum(USER_ROLES).meta({
+        description: "Perfil salvo no cadastro do usuário",
+      }),
     }),
   });
 

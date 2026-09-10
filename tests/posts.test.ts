@@ -35,6 +35,7 @@ beforeEach(async () => {
     password: hashedPassword,
     email: "prof@professor.com",
     isActive: true,
+    role: "PROFESSOR",
   });
 
   await UserModel.create({
@@ -99,6 +100,25 @@ describe("POST /auth/login", () => {
     expect(response.status).toBe(200);
     expect(response.body.data).toHaveProperty("token");
     expect(response.body.data.user.email).toBe("prof@professor.com");
+    expect(response.body.data.user).toMatchObject({
+      id: professorId,
+      username: "prof.teste",
+      role: "PROFESSOR",
+    });
+    expect(response.body.data.user).not.toHaveProperty("password");
+  });
+
+  it("deve retornar o perfil ALUNO salvo no cadastro do usuário", async () => {
+    const response = await request(app)
+      .post("/auth/login")
+      .send({ email: "aluno@gmail.com", password: "A12345678" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.user).toMatchObject({
+      username: "aluno.teste",
+      role: "ALUNO",
+    });
+    expect(response.body.data.user).not.toHaveProperty("password");
   });
 
   it("deve retornar 401 para senha incorreta", async () => {
@@ -341,6 +361,29 @@ describe("POST /posts - validação de campos", () => {
 });
 
 describe("POST /posts", () => {
+  it.each([true, false, undefined])(
+    "deve persistir o destaque na criação com isFeatured=%s",
+    async (isFeatured) => {
+      const response = await request(app)
+        .post("/posts")
+        .set("Authorization", `Bearer ${professorToken}`)
+        .send({
+          title: "Post com destaque",
+          content: "Conteúdo completo do post",
+          summary: "Resumo completo do post",
+          disciplineId,
+          statusId,
+          semester: "1",
+          ...(isFeatured === undefined ? {} : { isFeatured }),
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.data.isFeatured).toBe(isFeatured ?? false);
+      const storedPost = await PostModel.findById(response.body.data._id);
+      expect(storedPost?.isFeatured).toBe(isFeatured ?? false);
+    },
+  );
+
   it("deve criar post quando o autor possui email de professor", async () => {
     const response = await request(app)
       .post("/posts")
@@ -629,6 +672,60 @@ describe("PATCH /posts/:id", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toHaveProperty("message");
+  });
+});
+
+describe("Imagem opcional dos posts", () => {
+  it("deve criar um post sem imagem quando o formulário envia a URL vazia", async () => {
+    const response = await request(app)
+      .post("/posts")
+      .set("Authorization", `Bearer ${professorToken}`)
+      .send({
+        title: "Post sem imagem",
+        content: "Conteúdo do post sem imagem",
+        summary: "Resumo do post sem imagem",
+        semester: "1",
+        disciplineId,
+        statusId,
+        imageUrl: "",
+      });
+
+    expect(response.status).toBe(201);
+    const storedPost = await PostModel.findById(response.body.data._id);
+    expect(storedPost?.imageUrl).toBe("");
+  });
+
+  it.each(["put", "patch"] as const)("deve remover a imagem persistida usando %s", async (method) => {
+    await PostModel.findByIdAndUpdate(postId, { imageUrl: "https://exemplo.com/capa.jpg" });
+
+    const response = await request(app)[method](`/posts/${postId}`)
+      .set("Authorization", `Bearer ${professorToken}`)
+      .send(method === "patch" ? { imageUrl: "" } : {
+        title: "Post sem a capa anterior",
+        content: "Conteúdo preservado durante a edição",
+        summary: "Resumo preservado durante a edição",
+        semester: "1",
+        disciplineId,
+        statusId,
+        imageUrl: "",
+      });
+
+    expect(response.status).toBe(200);
+    const readResponse = await request(app).get(`/posts/${postId}`);
+    expect(readResponse.body.data.imageUrl).toBe("");
+    expect(readResponse.body.data.author._id).toBe(professorId);
+  });
+
+  it("deve preservar a imagem quando uma edição parcial não envia imageUrl", async () => {
+    await PostModel.findByIdAndUpdate(postId, { imageUrl: "https://exemplo.com/capa.jpg" });
+    const response = await request(app)
+      .patch(`/posts/${postId}`)
+      .set("Authorization", `Bearer ${professorToken}`)
+      .send({ title: "Apenas o título atualizado" });
+
+    expect(response.status).toBe(200);
+    const storedPost = await PostModel.findById(postId);
+    expect(storedPost?.imageUrl).toBe("https://exemplo.com/capa.jpg");
   });
 });
 
