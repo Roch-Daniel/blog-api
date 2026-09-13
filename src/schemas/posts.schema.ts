@@ -31,6 +31,11 @@ const objectIdSchema = z
   .string()
   .regex(/^[0-9a-fA-F]{24}$/, "ID inválido do MongoDB");
 
+const httpUrl = z.url({
+  protocol: /^https$/,
+  error: "imageUrl deve ser uma URL https válida",
+});
+
 export const createPostSchema = z
   .object({
     title: sanitizedField("título", 5, 100).meta({
@@ -45,10 +50,15 @@ export const createPostSchema = z
       description: "Resumo do post",
       example: "Uma breve introdução sobre o assunto abordado.",
     }),
-    imageUrl: z.url("imageUrl deve ser uma URL válida").optional().meta({
-      description: "URL da imagem de capa (opcional)",
-      example: "https://exemplo.com/imagem.jpg",
-    }),
+    imageUrl: z
+      .union([httpUrl, z.literal("")], {
+        error: "imageUrl deve ser uma URL https válida ou vazia",
+      })
+      .optional()
+      .meta({
+        description: "URL da imagem de capa (opcional)",
+        example: "https://exemplo.com/imagem.jpg",
+      }),
     series: z.string().trim().optional().meta({
       description: "Série/Ano letivo relacionado (opcional)",
       example: "3º Ano Ensino Médio",
